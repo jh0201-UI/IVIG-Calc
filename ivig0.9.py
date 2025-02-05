@@ -34,7 +34,7 @@ def ivig_calculator(df):
             current_time = end_time  # Move to next step
 
         df = pd.DataFrame(infusion_steps, columns=["Start Time", "Rate (mL/hr)", "Duration (minutes)", "End Time", "Volume Infused (mL)", "Volume Remaining (mL)"])
-        return df[df["Volume Infused (mL)"] > 0]  # Only show active rows
+        return df[df.notna().all(axis=1)]  # Show only rows with data
     
     except ValueError:
         return "Invalid time format. Use HH:MM (24-hour format)."
@@ -57,7 +57,7 @@ edited_df = st.data_editor(df, num_rows="dynamic", height=400)
 
 # Filter out empty and inactive rows
 edited_df = edited_df.dropna(how="all")
-edited_df = edited_df[edited_df["Rate (mL/hr)"].notna() & edited_df["Duration (minutes)"].notna()]
+edited_df = edited_df[edited_df.notna().all(axis=1)]
 
 # Automatically update table in real time
 if not edited_df.empty:
