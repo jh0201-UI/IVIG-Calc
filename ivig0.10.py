@@ -44,12 +44,15 @@ st.title("Heme/Onc Clinic Infusion Calculator")
 
 st.subheader("Infusion Schedule")
 
-# Create an editable table with four initial steps
+# Get the current time
+current_time = datetime.now().strftime("%H:%M")
+
+# Create an editable table with only the first row prepopulated
 initial_data = {
-    "Start Time": ["14:00", "14:30", "15:00", "15:30"],
-    "Rate (mL/hr)": [30, 60, 90, 120],
-    "Duration (minutes)": [30, 30, 30, 30],
-    "Volume Remaining (mL)": [400, 400, 400, 400]
+    "Start Time": [current_time] + ["" for _ in range(3)],
+    "Rate (mL/hr)": ["" for _ in range(4)],
+    "Duration (minutes)": ["" for _ in range(4)],
+    "Volume Remaining (mL)": ["" for _ in range(4)]
 }
 
 df = pd.DataFrame(initial_data)
