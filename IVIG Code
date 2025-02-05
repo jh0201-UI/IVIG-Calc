@@ -1,32 +1,15 @@
+import streamlit as st
 from datetime import datetime, timedelta
-import pandas as pd
 
-def ivig_calculator(start_time, total_volume):
-    """
-    Calculates expected finish time and infusion volumes at each rate increase.
-    :param start_time: Start time in HH:MM format (24-hour time)
-    :param total_volume: Total volume of IVIG in mL
-    :return: Infusion schedule as a DataFrame with expected finish times and cumulative volumes
-    """
+def ivig_calculator(start_time, total_volume, rate_schedule):
     try:
         current_time = datetime.strptime(start_time, "%H:%M")
         infused_volume = 0
         infusion_steps = []
 
-        rate_schedule = []
-        while True:
-            rate = input("Enter rate in mL/hr (or 'done' to finish): ")
-            if rate.lower() == 'done':
-                break
-            duration = input("Enter duration in minutes: ")
-            try:
-                rate_schedule.append((int(rate), int(duration)))
-            except ValueError:
-                print("Invalid input. Please enter numeric values.")
-
         for rate, duration in rate_schedule:
             if infused_volume >= total_volume:
-                breakIVIG Calc
+                break
             
             time_at_rate = timedelta(minutes=duration)
             volume_at_rate = (rate / 60) * duration  # Convert mL/hr to mL/min * duration
@@ -39,19 +22,37 @@ def ivig_calculator(start_time, total_volume):
             infused_volume += volume_at_rate
             end_time = current_time + time_at_rate
             
-            infusion_steps.append([rate, current_time.strftime("%H:%M"), end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2)])
+            infusion_steps.append({
+                "Rate (mL/hr)": rate,
+                "Start Time": current_time.strftime("%H:%M"),
+                "End Time": end_time.strftime("%H:%M"),
+                "Volume Infused (mL)": round(infused_volume, 2)
+            })
             
             current_time = end_time  # Move to next step
 
-        df = pd.DataFrame(infusion_steps, columns=["Rate (mL/hr)", "Start Time", "End Time", "Volume Infused (mL)", "Cumulative Volume (mL)"])
-        return df
+        return infusion_steps
     
     except ValueError:
         return "Invalid time format. Use HH:MM (24-hour format)."
 
-# Example Usage
-start_time = input("Enter start time (HH:MM): ")
-total_volume = int(input("Enter total volume in mL: "))
+# Streamlit UI
+st.title("IVIG Infusion Calculator")
 
-schedule = ivig_calculator(start_time, total_volume)
-print(schedule)
+start_time = st.text_input("Enter start time (HH:MM)", "14:00")
+total_volume = st.number_input("Enter total volume (mL)", min_value=1, value=400)
+
+st.subheader("Enter Rate Schedule")
+rate_schedule = []
+add_more = True
+while add_more:
+    col1, col2 = st.columns(2)
+    rate = col1.number_input("Rate (mL/hr)", min_value=1, key=f"rate_{len(rate_schedule)}")
+    duration = col2.number_input("Duration (minutes)", min_value=1, key=f"duration_{len(rate_schedule)}")
+    
+    if st.button("Add Rate Step"):
+        rate_schedule.append((rate, duration))
+
+if st.button("Calculate Infusion Schedule"):
+    schedule = ivig_calculator(start_time, total_volume, rate_schedule)
+    st.write(schedule)
