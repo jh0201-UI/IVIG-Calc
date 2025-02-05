@@ -48,6 +48,7 @@ for i in range(rate_count):
     duration = st.number_input(f"Duration {i+1} (minutes)", min_value=1, value=30, key=f"duration_{i}")
     rate_schedule.append((rate, duration))
 
-if st.button("Calculate Infusion Schedule"):
+# Automatically update table in real time
+if rate_schedule:
     schedule = ivig_calculator(start_time, total_volume, rate_schedule)
-    st.write(schedule)
+    st.dataframe(schedule)
