@@ -1,0 +1,57 @@
+from datetime import datetime, timedelta
+import pandas as pd
+
+def ivig_calculator(start_time, total_volume):
+    """
+    Calculates expected finish time and infusion volumes at each rate increase.
+    :param start_time: Start time in HH:MM format (24-hour time)
+    :param total_volume: Total volume of IVIG in mL
+    :return: Infusion schedule as a DataFrame with expected finish times and cumulative volumes
+    """
+    try:
+        current_time = datetime.strptime(start_time, "%H:%M")
+        infused_volume = 0
+        infusion_steps = []
+
+        rate_schedule = []
+        while True:
+            rate = input("Enter rate in mL/hr (or 'done' to finish): ")
+            if rate.lower() == 'done':
+                break
+            duration = input("Enter duration in minutes: ")
+            try:
+                rate_schedule.append((int(rate), int(duration)))
+            except ValueError:
+                print("Invalid input. Please enter numeric values.")
+
+        for rate, duration in rate_schedule:
+            if infused_volume >= total_volume:
+                breakIVIG Calc
+            
+            time_at_rate = timedelta(minutes=duration)
+            volume_at_rate = (rate / 60) * duration  # Convert mL/hr to mL/min * duration
+            
+            if infused_volume + volume_at_rate > total_volume:
+                time_needed = (total_volume - infused_volume) / (rate / 60)
+                time_at_rate = timedelta(minutes=time_needed)
+                volume_at_rate = total_volume - infused_volume
+                
+            infused_volume += volume_at_rate
+            end_time = current_time + time_at_rate
+            
+            infusion_steps.append([rate, current_time.strftime("%H:%M"), end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2)])
+            
+            current_time = end_time  # Move to next step
+
+        df = pd.DataFrame(infusion_steps, columns=["Rate (mL/hr)", "Start Time", "End Time", "Volume Infused (mL)", "Cumulative Volume (mL)"])
+        return df
+    
+    except ValueError:
+        return "Invalid time format. Use HH:MM (24-hour format)."
+
+# Example Usage
+start_time = input("Enter start time (HH:MM): ")
+total_volume = int(input("Enter total volume in mL: "))
+
+schedule = ivig_calculator(start_time, total_volume)
+print(schedule)
