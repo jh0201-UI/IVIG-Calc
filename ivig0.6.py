@@ -45,21 +45,18 @@ st.title("Heme/Onc Clinic Infusion Calculator")
 
 st.subheader("Infusion Schedule")
 
-# Create an editable table
+# Create an editable table with four initial steps
 initial_data = {
-    "Start Time": ["14:00", "14:30", "15:00"],
-    "Rate (mL/hr)": [30, 60, 90],
-    "Duration (minutes)": [30, 30, 30],
-    "Total Volume (mL)": [400, 400, 400]
+    "Start Time": ["14:00", "14:30", "15:00", "15:30"],
+    "Rate (mL/hr)": [30, 60, 90, 120],
+    "Duration (minutes)": [30, 30, 30, 30],
+    "Total Volume (mL)": [400, 400, 400, 400]
 }
 
 df = pd.DataFrame(initial_data)
 edited_df = st.data_editor(df, num_rows="dynamic", height=400)
 
-# Apply conditional formatting to highlight invalid data
-styled_df = edited_df.style.applymap(lambda x: 'background-color: red' if isinstance(x, str) and not x.isnumeric() else '', subset=["Rate (mL/hr)", "Duration (minutes)"])
-
 # Automatically update table in real time
 if not edited_df.empty:
     schedule = ivig_calculator(edited_df)
-    st.dataframe(schedule.style.applymap(lambda x: 'background-color: red' if isinstance(x, str) and not x.isnumeric() else '', subset=["Rate (mL/hr)", "Duration (minutes)"]))
+    st.data_editor(schedule, num_rows="dynamic", height=400)
