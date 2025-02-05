@@ -23,15 +23,13 @@ def ivig_calculator(start_time, total_volume, rate_schedule):
             infused_volume += volume_at_rate
             end_time = current_time + time_at_rate
             
-            infusion_steps.append([
-                rate, current_time.strftime("%H:%M"), end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2)
-            ])
+            infusion_steps.append([rate, current_time.strftime("%H:%M"), end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2)])
             
             current_time = end_time  # Move to next step
 
         df = pd.DataFrame(infusion_steps, columns=["Rate (mL/hr)", "Start Time", "End Time", "Volume Infused (mL)", "Cumulative Volume (mL)"])
         return df
-
+    
     except ValueError:
         return "Invalid time format. Use HH:MM (24-hour format)."
 
@@ -53,4 +51,3 @@ for i in range(rate_count):
 if st.button("Calculate Infusion Schedule"):
     schedule = ivig_calculator(start_time, total_volume, rate_schedule)
     st.write(schedule)
-
