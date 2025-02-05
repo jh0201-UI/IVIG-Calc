@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
-def ivig_calculator(df, total_volume, start_time):
+def ivig_calculator(df):
     try:
-        current_time = datetime.strptime(start_time, "%H:%M")
         infused_volume = 0
         infusion_steps = []
+        total_volume = df["Total Volume (mL)"].iloc[0]
+        current_time = datetime.strptime(df["Start Time"].iloc[0], "%H:%M")
 
         for index, row in df.iterrows():
             rate = row["Rate (mL/hr)"]
@@ -26,11 +27,11 @@ def ivig_calculator(df, total_volume, start_time):
             infused_volume += volume_at_rate
             end_time = current_time + time_at_rate
             
-            infusion_steps.append([rate, duration, current_time.strftime("%H:%M"), end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2)])
+            infusion_steps.append([current_time.strftime("%H:%M"), rate, duration, end_time.strftime("%H:%M"), round(volume_at_rate, 2), round(infused_volume, 2), total_volume])
             
             current_time = end_time  # Move to next step
 
-        df = pd.DataFrame(infusion_steps, columns=["Rate (mL/hr)", "Duration (minutes)", "Start Time", "End Time", "Volume Infused (mL)", "Cumulative Volume (mL)"])
+        df = pd.DataFrame(infusion_steps, columns=["Start Time", "Rate (mL/hr)", "Duration (minutes)", "End Time", "Volume Infused (mL)", "Cumulative Volume (mL)", "Total Volume (mL)"])
         return df
     
     except ValueError:
@@ -39,15 +40,14 @@ def ivig_calculator(df, total_volume, start_time):
 # Streamlit UI
 st.title("IVIG Infusion Calculator")
 
-start_time = st.text_input("Enter start time (HH:MM)", "14:00")
-total_volume = st.number_input("Enter total volume (mL)", min_value=1, value=400)
-
 st.subheader("Adjust Rate Schedule")
 
 # Create an editable table
 initial_data = {
+    "Start Time": ["14:00", "14:30", "15:00"],
     "Rate (mL/hr)": [30, 60, 90],
-    "Duration (minutes)": [30, 30, 30]
+    "Duration (minutes)": [30, 30, 30],
+    "Total Volume (mL)": [400, 400, 400]
 }
 
 df = pd.DataFrame(initial_data)
@@ -55,6 +55,6 @@ edited_df = st.data_editor(df, num_rows="dynamic")
 
 # Automatically update table in real time
 if not edited_df.empty:
-    schedule = ivig_calculator(edited_df, total_volume, start_time)
+    schedule = ivig_calculator(edited_df)
     st.subheader("Infusion Schedule")
     st.dataframe(schedule)
