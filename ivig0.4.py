@@ -10,8 +10,11 @@ def ivig_calculator(df):
         current_time = datetime.strptime(df["Start Time"].iloc[0], "%H:%M")
 
         for index, row in df.iterrows():
-            rate = row["Rate (mL/hr)"]
-            duration = row["Duration (minutes)"]
+            try:
+                rate = float(row["Rate (mL/hr)"])
+                duration = float(row["Duration (minutes)"])
+            except ValueError:
+                continue  # Skip invalid rows without throwing errors
             
             if infused_volume >= total_volume:
                 break
@@ -38,9 +41,9 @@ def ivig_calculator(df):
         return "Invalid time format. Use HH:MM (24-hour format)."
 
 # Streamlit UI
-st.title("IVIG Infusion Calculator")
+st.title("Heme/Onc Clinic Infusion Calculator")
 
-st.subheader("Adjust Rate Schedule")
+st.subheader("Infusion Schedule")
 
 # Create an editable table
 initial_data = {
@@ -51,10 +54,12 @@ initial_data = {
 }
 
 df = pd.DataFrame(initial_data)
-edited_df = st.data_editor(df, num_rows="dynamic")
+edited_df = st.data_editor(df, num_rows="dynamic", height=400)
+
+# Apply conditional formatting to highlight invalid data
+styled_df = edited_df.style.applymap(lambda x: 'background-color: red' if isinstance(x, str) and not x.isnumeric() else '', subset=["Rate (mL/hr)", "Duration (minutes)"])
 
 # Automatically update table in real time
 if not edited_df.empty:
     schedule = ivig_calculator(edited_df)
-    st.subheader("Infusion Schedule")
-    st.dataframe(schedule)
+    st.dataframe(schedule.style.applymap(lambda x: 'background-color: red' if isinstance(x, str) and not x.isnumeric() else '', subset=["Rate (mL/hr)", "Duration (minutes)"]))
